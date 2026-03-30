@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start Free Trial — DataFlow AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f5f3ee;
+    --cream: #ede9e0;
+    --acid: #c8f23a;
+    --acid-dark: #a8d020;
+    --slate: #1e1e2e;
+    --mist: #8a8a9a;
+    --copper: #e07840;
+    --teal: #2dd4bf;
+    --border: rgba(10,10,15,0.12);
+    --err: #ff4d4d;
+    --success: #2dd4bf;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--ink);
+    color: var(--paper);
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── Cursor ── */
+  .cursor { position:fixed; width:8px; height:8px; background:var(--acid); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:transform 0.1s; }
+  .cursor-ring { position:fixed; width:32px; height:32px; border:1.5px solid rgba(200,242,58,0.4); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width 0.25s, height 0.25s, border-color 0.25s; }
+
+  /* ── Background ── */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+  .bg-glow {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 50% at 75% 20%, rgba(200,242,58,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(45,212,191,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(224,120,64,0.03) 0%, transparent 70%);
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(10,10,15,0.7);
+    backdrop-filter: blur(20px);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.1rem;
+    letter-spacing: -0.03em;
+    display: flex; align-items: center; gap: 0.5rem;
+    text-decoration: none; color: var(--paper);
+  }
+  .logo-dot { width:8px; height:8px; background:var(--acid); border-radius:50%; animation: pulse 2s ease infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.6);opacity:0.6} }
+  .nav-back {
+    font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(255,255,255,0.35); text-decoration: none;
+    display: flex; align-items: center; gap: 0.4rem;
+    transition: color 0.2s; cursor: none;
+  }
+  .nav-back:hover { color: var(--paper); }
+  .nav-back::before { content: '←'; }
+
+  /* ── Page layout ── */
+  .page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative; z-index: 1;
+    padding-top: 72px;
+  }
+
+  /* ── Left panel ── */
+  .left-panel {
+    padding: 5rem 4rem 4rem 4rem;
+    display: flex; flex-direction: column; justify-content: center;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+  }
+
+  .trial-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--acid);
+    margin-bottom: 1.75rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid rgba(200,242,58,0.25);
+    width: fit-content;
+    background: rgba(200,242,58,0.05);
+    animation: fadeUp 0.5s ease both;
+  }
+  .trial-badge-dot { width:5px; height:5px; background:var(--acid); border-radius:50%; animation:pulse 1.5s ease infinite; }
+
+  .left-headline {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.2rem, 3.5vw, 3.4rem);
+    font-weight: 800; line-height: 1;
+    letter-spacing: -0.04em;
+    margin-bottom: 1.25rem;
+    animation: fadeUp 0.5s 0.1s ease both;
+  }
+  .left-headline em {
+    font-style: italic;
+    font-family: 'Instrument Serif', serif;
+    color: var(--acid);
+  }
+
+  .left-sub {
+    font-size: 0.83rem; line-height: 1.75;
+    color: rgba(255,255,255,0.45);
+    max-width: 380px; margin-bottom: 3rem;
+    animation: fadeUp 0.5s 0.2s ease both;
+  }
+
+  /* Perks list */
+  .perks {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 0;
+    animation: fadeUp 0.5s 0.3s ease both;
+  }
+  .perk {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: padding-left 0.2s;
+  }
+  .perk:last-child { border-bottom: none; }
+  .perk:hover { padding-left: 0.5rem; }
+  .perk-icon {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; flex-shrink: 0;
+  }
+  .perk-title { font-family:'Syne',sans-serif; font-size:0.82rem; font-weight:700; color:var(--paper); }
+  .perk-desc { font-size:0.72rem; color:rgba(255,255,255,0.35); margin-top:0.15rem; line-height:1.5; }
+
+  /* Social proof strip */
+  .social-proof {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; gap: 1.25rem;
+    animation: fadeUp 0.5s 0.4s ease both;
+  }
+  .avatars { display: flex; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 2px solid var(--ink);
+    margin-left: -8px; font-size: 0.8rem;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--slate);
+  }
+  .avatars .avatar:first-child { margin-left: 0; }
+  .proof-text { font-size: 0.72rem; color: rgba(255,255,255,0.35); line-height: 1.5; }
+  .proof-text strong { color: var(--paper); }
+
+  /* ── Right panel (form) ── */
+  .right-panel {
+    padding: 5rem 4rem 4rem 4rem;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+
+  .form-header {
+    margin-bottom: 2.5rem;
+    animation: fadeUp 0.5s 0.15s ease both;
+  }
+  .form-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem; font-weight: 700;
+    color: var(--paper); margin-bottom: 0.4rem;
+  }
+  .form-sub { font-size: 0.72rem; color: rgba(255,255,255,0.35); }
+  .form-sub a { color: var(--acid); text-decoration: none; }
+  .form-sub a:hover { text-decoration: underline; }
+
+  /* Form fields */
+  .form { display: flex; flex-direction: column; gap: 0; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  .field {
+    display: flex; flex-direction: column; gap: 0.4rem;
+    margin-bottom: 1rem;
+    animation: fadeUp 0.5s ease both;
+  }
+  .field:nth-child(1){animation-delay:0.2s}
+  .field:nth-child(2){animation-delay:0.25s}
+  .field:nth-child(3){animation-delay:0.3s}
+  .field:nth-child(4){animation-delay:0.35s}
+  .field:nth-child(5){animation-delay:0.4s}
+  .field:nth-child(6){animation-delay:0.45s}
+
+  label {
+    font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+  .required-dot { color: var(--copper); margin-left: 2px; }
+
+  input[type=text], input[type=email], input[type=password], select {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.83rem;
+    padding: 0.8rem 1rem;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s, background 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input::placeholder { color: rgba(255,255,255,0.2); }
+  input:focus, select:focus {
+    border-color: var(--acid);
+    background: rgba(200,242,58,0.04);
+  }
+  input.error { border-color: var(--err); }
+  .field-error { font-size:0.65rem; color:var(--err); margin-top:0.2rem; display:none; }
+  .field-error.show { display:block; }
+
+  /* Password strength */
+  .pw-strength { margin-top: 0.5rem; }
+  .pw-bar-track { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+  .pw-bar { height: 100%; width: 0%; border-radius: 2px; transition: width 0.3s, background 0.3s; }
+  .pw-label { font-size: 0.62rem; color: rgba(255,255,255,0.3); margin-top: 0.3rem; }
+
+  /* Select styling */
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '↓';
+    position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+    color: rgba(255,255,255,0.3); pointer-events: none; font-size: 0.75rem;
+  }
+  select { cursor: none; }
+  select option { background: var(--slate); color: var(--paper); }
+
+  /* Divider */
+  .divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 1.25rem 0;
+    font-size: 0.65rem; color: rgba(255,255,255,0.2); letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06);
+  }
+
+  /* OAuth buttons */
+  .oauth-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0; }
+  .oauth-btn {
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    padding: 0.7rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.6);
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    cursor: none; transition: all 0.2s;
+    text-decoration: none;
+  }
+  .oauth-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: var(--paper); }
+  .oauth-icon { font-size: 1rem; }
+
+  /* Terms checkbox */
+  .checkbox-row {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    margin: 1.25rem 0;
+    animation: fadeUp 0.5s 0.5s ease both;
+  }
+  .custom-check { position: relative; flex-shrink: 0; }
+  .custom-check input[type=checkbox] { position:absolute; opacity:0; width:0; height:0; }
+  .check-box {
+    width: 16px; height: 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: none; transition: all 0.2s; margin-top: 2px;
+  }
+  .custom-check input:checked + .check-box { background: var(--acid); border-color: var(--acid); }
+  .check-mark { font-size: 0.6rem; color: var(--ink); display: none; }
+  .custom-check input:checked + .check-box .check-mark { display: block; }
+  .check-label { font-size: 0.71rem; color: rgba(255,255,255,0.35); line-height: 1.6; }
+  .check-label a { color: var(--acid); text-decoration: none; }
+
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    background: var(--acid);
+    color: var(--ink);
+    border: none; cursor: none;
+    padding: 1rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 0.9rem;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    transition: background 0.2s, transform 0.15s;
+    position: relative; overflow: hidden;
+    animation: fadeUp 0.5s 0.55s ease both;
+  }
+  .submit-btn:hover { background: var(--acid-dark); transform: translateY(-2px); }
+  .submit-btn:active { transform: translateY(0); }
+  .submit-btn.loading { pointer-events: none; }
+  .submit-btn .btn-text { transition: opacity 0.2s; }
+  .submit-btn .btn-loader {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .submit-btn.loading .btn-text { opacity: 0; }
+  .submit-btn.loading .btn-loader { opacity: 1; }
+  .spinner { width: 18px; height: 18px; border: 2px solid rgba(10,10,15,0.3); border-top-color: var(--ink); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* ── Success state ── */
+  .success-screen {
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 3rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .success-screen.show { display: flex; }
+  .success-icon {
+    width: 72px; height: 72px;
+    background: rgba(200,242,58,0.1);
+    border: 1px solid rgba(200,242,58,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; margin-bottom: 1.5rem;
+    animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes popIn { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+  .success-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem; font-weight: 800;
+    color: var(--paper); margin-bottom: 0.6rem;
+  }
+  .success-desc { font-size: 0.8rem; color: rgba(255,255,255,0.4); line-height: 1.7; max-width: 320px; margin-bottom: 2rem; }
+  .success-steps {
+    width: 100%; list-style: none;
+    display: flex; flex-direction: column; gap: 0;
+    margin-bottom: 2rem; text-align: left;
+  }
+  .success-step {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.78rem; color: rgba(255,255,255,0.5);
+  }
+  .success-step:last-child { border-bottom: none; }
+  .step-num-s {
+    width: 24px; height: 24px;
+    background: rgba(200,242,58,0.1); border: 1px solid rgba(200,242,58,0.25);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family:'Syne',sans-serif; font-size:0.65rem; font-weight:700; color:var(--acid);
+    flex-shrink: 0;
+  }
+  .goto-btn {
+    background: var(--acid); color: var(--ink);
+    padding: 0.85rem 2rem;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:0.82rem;
+    letter-spacing:0.04em; text-transform:uppercase;
+    text-decoration:none; display:inline-block;
+    transition: background 0.2s, transform 0.15s; cursor:none;
+  }
+  .goto-btn:hover { background:var(--acid-dark); transform:translateY(-2px); }
+
+  /* ── Plan summary strip ── */
+  .plan-strip {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.85rem 1rem;
+    background: rgba(200,242,58,0.05);
+    border: 1px solid rgba(200,242,58,0.15);
+    margin-bottom: 1.75rem;
+    animation: fadeUp 0.5s 0.1s ease both;
+  }
+  .plan-strip-name { font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700; color:var(--acid); }
+  .plan-strip-detail { font-size:0.68rem; color:rgba(255,255,255,0.35); }
+  .plan-change { font-size:0.65rem; color:rgba(255,255,255,0.25); cursor:none; text-decoration:underline; transition:color 0.2s; }
+  .plan-change:hover { color:var(--paper); }
+
+  /* Step indicator */
+  .step-indicator {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.5s ease both;
+  }
+  .si-step {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+  }
+  .si-step.active { color: var(--acid); }
+  .si-step.done { color: rgba(255,255,255,0.4); }
+  .si-num {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.62rem; font-family:'Syne',sans-serif; font-weight:700;
+  }
+  .si-step.active .si-num { background: var(--acid); border-color: var(--acid); color: var(--ink); }
+  .si-step.done .si-num { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.1); }
+  .si-line { flex: 1; height: 1px; background: rgba(255,255,255,0.06); margin: 0 0.5rem; min-width: 20px; }
+
+  @keyframes fadeUp {
+    from{opacity:0;transform:translateY(16px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  /* Responsive */
+  @media(max-width: 860px) {
+    .page { grid-template-columns: 1fr; }
+    .left-panel { display: none; }
+    .right-panel { padding: 5rem 2rem 3rem; }
+    nav { padding: 1rem 1.5rem; }
+    .field-row { grid-template-columns: 1fr; }
+    .oauth-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="ring"></div>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<!-- Nav -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <span class="logo-dot"></span>
+    DataFlow<span style="opacity:0.4">AI</span>
+  </a>
+  <a href="index.html" class="nav-back">Back to site</a>
+</nav>
+
+<div class="page">
+
+  <!-- LEFT: Value prop -->
+  <div class="left-panel">
+    <div class="trial-badge">
+      <span class="trial-badge-dot"></span>
+      14-day free trial · No credit card
+    </div>
+    <h1 class="left-headline">
+      Your data.<br>
+      <em>Fully analyzed</em><br>
+      in 60 seconds.
+    </h1>
+    <p class="left-sub">
+      Upload a CSV, connect your tools, and DataFlow AI handles the rest — cleaning, modeling, and explaining your data in plain English.
+    </p>
+
+    <ul class="perks">
+      <li class="perk">
+        <div class="perk-icon" style="background:rgba(200,242,58,0.08)">📥</div>
+        <div>
+          <div class="perk-title">Instant data ingestion</div>
+          <div class="perk-desc">CSV, Excel, SQL, APIs — we detect and ingest everything automatically</div>
+        </div>
+      </li>
+      <li class="perk">
+        <div class="perk-icon" style="background:rgba(45,212,191,0.08)">🧹</div>
+        <div>
+          <div class="perk-title">ML-powered auto-cleaning</div>
+          <div class="perk-desc">Outliers removed, missing values filled, formats normalized before analysis</div>
+        </div>
+      </li>
+      <li class="perk">
+        <div class="perk-icon" style="background:rgba(224,120,64,0.08)">🎯</div>
+        <div>
+          <div class="perk-title">Predictive models in minutes</div>
+          <div class="perk-desc">Revenue forecasting, churn prediction, and customer segmentation out of the box</div>
+        </div>
+      </li>
+      <li class="perk">
+        <div class="perk-icon" style="background:rgba(200,242,58,0.06)">💬</div>
+        <div>
+          <div class="perk-title">Ask your data anything</div>
+          <div class="perk-desc">"Why are my sales down?" — get a plain-English answer backed by real ML</div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="social-proof">
+      <div class="avatars">
+        <div class="avatar">🧑</div>
+        <div class="avatar">👩</div>
+        <div class="avatar">👨</div>
+        <div class="avatar">🧔</div>
+        <div class="avatar">👩</div>
+      </div>
+      <div class="proof-text">
+        Joined by <strong>2,400+ businesses</strong> this month.<br>
+        Setup takes under 5 minutes.
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Form -->
+  <div class="right-panel">
+
+    <!-- Step indicator -->
+    <div class="step-indicator">
+      <div class="si-step active" id="si1">
+        <div class="si-num">1</div>
+        <span>Account</span>
+      </div>
+      <div class="si-line"></div>
+      <div class="si-step" id="si2">
+        <div class="si-num">2</div>
+        <span>Business</span>
+      </div>
+      <div class="si-line"></div>
+      <div class="si-step" id="si3">
+        <div class="si-num">3</div>
+        <span>Connect data</span>
+      </div>
+    </div>
+
+    <!-- Plan strip -->
+    <div class="plan-strip">
+      <div>
+        <div class="plan-strip-name">Growth Plan — Free Trial</div>
+        <div class="plan-strip-detail">14 days free · Then $149/mo · Cancel anytime</div>
+      </div>
+      <a href="index.html#pricing" class="plan-change">Change plan</a>
+    </div>
+
+    <!-- Form header -->
+    <div class="form-header">
+      <div class="form-title">Create your account</div>
+      <div class="form-sub">Already have one? <a href="#">Sign in instead</a></div>
+    </div>
+
+    <!-- OAuth -->
+    <div class="oauth-row" style="margin-bottom:1.25rem">
+      <a href="#" class="oauth-btn">
+        <span class="oauth-icon">🔵</span> Google
+      </a>
+      <a href="#" class="oauth-btn">
+        <span class="oauth-icon">⬛</span> GitHub
+      </a>
+    </div>
+
+    <div class="divider">or sign up with email</div>
+
+    <!-- Step 1: Account -->
+    <div id="step1">
+      <div class="form">
+        <div class="field-row">
+          <div class="field">
+            <label>First name <span class="required-dot">*</span></label>
+            <input type="text" id="firstName" placeholder="Jane" autocomplete="given-name">
+            <div class="field-error" id="err-firstName">Please enter your first name</div>
+          </div>
+          <div class="field">
+            <label>Last name <span class="required-dot">*</span></label>
+            <input type="text" id="lastName" placeholder="Smith" autocomplete="family-name">
+            <div class="field-error" id="err-lastName">Please enter your last name</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Work email <span class="required-dot">*</span></label>
+          <input type="email" id="email" placeholder="jane@company.com" autocomplete="email">
+          <div class="field-error" id="err-email">Please enter a valid email address</div>
+        </div>
+
+        <div class="field">
+          <label>Password <span class="required-dot">*</span></label>
+          <input type="password" id="password" placeholder="Min. 8 characters" autocomplete="new-password">
+          <div class="field-error" id="err-password">Password must be at least 8 characters</div>
+          <div class="pw-strength">
+            <div class="pw-bar-track"><div class="pw-bar" id="pwBar"></div></div>
+            <div class="pw-label" id="pwLabel">Enter a password</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Company name <span class="required-dot">*</span></label>
+          <input type="text" id="company" placeholder="Acme Inc." autocomplete="organization">
+          <div class="field-error" id="err-company">Please enter your company name</div>
+        </div>
+
+        <div class="field">
+          <label>Industry</label>
+          <div class="select-wrap">
+            <select id="industry">
+              <option value="" disabled selected>Select your industry</option>
+              <option>E-commerce / Retail</option>
+              <option>Finance / Accounting</option>
+              <option>Marketing / Advertising</option>
+              <option>SaaS / Technology</option>
+              <option>Healthcare</option>
+              <option>Manufacturing</option>
+              <option>Hospitality / Food</option>
+              <option>Consulting / Professional Services</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="checkbox-row">
+          <label class="custom-check">
+            <input type="checkbox" id="terms">
+            <div class="check-box"><span class="check-mark">✓</span></div>
+          </label>
+          <div class="check-label">
+            I agree to DataFlow AI's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I understand my data is processed securely and never sold.
+          </div>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
+          <span class="btn-text">Start Free Trial →</span>
+          <span class="btn-loader"><div class="spinner"></div></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Success screen (hidden initially) -->
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">You're all set!</div>
+      <div class="success-desc">
+        Your DataFlow AI account is ready. Check your inbox for a confirmation email, then upload your first dataset.
+      </div>
+      <ul class="success-steps">
+        <li class="success-step">
+          <div class="step-num-s">1</div>
+          Confirm your email (sent to <span id="confirmedEmail" style="color:var(--acid);margin-left:0.3rem"></span>)
+        </li>
+        <li class="success-step">
+          <div class="step-num-s">2</div>
+          Upload your first CSV or connect a data source
+        </li>
+        <li class="success-step">
+          <div class="step-num-s">3</div>
+          Ask your first question — insights in under 60 seconds
+        </li>
+      </ul>
+      <a href="#" class="goto-btn">Go to your dashboard →</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ── Cursor ──
+  const cur = document.getElementById('cursor');
+  const ring = document.getElementById('ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
+  (function tick(){
+    cur.style.left=mx+'px'; cur.style.top=my+'px';
+    rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12;
+    ring.style.left=rx+'px'; ring.style.top=ry+'px';
+    requestAnimationFrame(tick);
+  })();
+  document.querySelectorAll('a,button,input,select,label').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{ring.style.width='48px';ring.style.height='48px';ring.style.borderColor='rgba(200,242,58,0.5)';});
+    el.addEventListener('mouseleave',()=>{ring.style.width='32px';ring.style.height='32px';ring.style.borderColor='rgba(200,242,58,0.4)';});
+  });
+
+  // ── Password strength ──
+  const pwInput = document.getElementById('password');
+  const pwBar = document.getElementById('pwBar');
+  const pwLabel = document.getElementById('pwLabel');
+  pwInput.addEventListener('input', () => {
+    const v = pwInput.value;
+    let score = 0;
+    if (v.length >= 8) score++;
+    if (/[A-Z]/.test(v)) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const map = [
+      { pct: '0%', color: 'transparent', label: 'Enter a password' },
+      { pct: '25%', color: '#ff4d4d', label: 'Weak' },
+      { pct: '50%', color: '#ff9800', label: 'Fair' },
+      { pct: '75%', color: '#f0c420', label: 'Good' },
+      { pct: '100%', color: '#c8f23a', label: 'Strong ✓' },
+    ];
+    pwBar.style.width = map[score].pct;
+    pwBar.style.background = map[score].color;
+    pwLabel.textContent = map[score].label;
+    pwLabel.style.color = map[score].color === 'transparent' ? 'rgba(255,255,255,0.3)' : map[score].color;
+  });
+
+  // ── Validation ──
+  function validate() {
+    let ok = true;
+    const fields = [
+      { id: 'firstName', check: v => v.trim().length > 0 },
+      { id: 'lastName',  check: v => v.trim().length > 0 },
+      { id: 'email',     check: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) },
+      { id: 'password',  check: v => v.length >= 8 },
+      { id: 'company',   check: v => v.trim().length > 0 },
+    ];
+    fields.forEach(({ id, check }) => {
+      const input = document.getElementById(id);
+      const err = document.getElementById('err-' + id);
+      if (!check(input.value)) {
+        input.classList.add('error');
+        err.classList.add('show');
+        ok = false;
+      } else {
+        input.classList.remove('error');
+        err.classList.remove('show');
+      }
+    });
+    if (!document.getElementById('terms').checked) {
+      ok = false;
+      document.querySelector('.check-label').style.color = 'rgba(255,77,77,0.7)';
+    } else {
+      document.querySelector('.check-label').style.color = '';
+    }
+    return ok;
+  }
+
+  // Clear errors on input
+  ['firstName','lastName','email','password','company'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      document.getElementById(id).classList.remove('error');
+      document.getElementById('err-' + id).classList.remove('show');
+    });
+  });
+
+  // ── Submit ──
+  function handleSubmit() {
+    if (!validate()) return;
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add('loading');
+
+    // Simulate API call
+    setTimeout(() => {
+      btn.classList.remove('loading');
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('confirmedEmail').textContent = document.getElementById('email').value;
+
+      // Update step indicators
+      document.getElementById('si1').classList.remove('active');
+      document.getElementById('si1').classList.add('done');
+
+      const success = document.getElementById('successScreen');
+      success.classList.add('show');
+    }, 1800);
+  }
+
+  // Real-time email validation
+  document.getElementById('email').addEventListener('blur', function() {
+    const err = document.getElementById('err-email');
+    if (this.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value)) {
+      this.classList.add('error');
+      err.classList.add('show');
+    }
+  });
+</script>
+</body>
+</html>
